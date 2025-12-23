@@ -29,21 +29,20 @@
   "homepage": "https://botoxparty.github.io/XP.css/",
   "devDependencies": {
     "chokidar": "^3.3.1",
-    "cssnano": "^4.1.10",
+    "cssnano": "^7.1.2",
     "dedent": "^0.7.0",
     "ejs": "^3.0.2",
-    "gh-pages": "^2.2.0",
+    "gh-pages": "^6.3.0",
     "glob": "^7.1.6",
     "highlight.js": ">=10.4.1",
-    "live-server": "^1.2.1",
+    "live-server": "^1.2.0",
     "mkdirp": "^1.0.4",
-    "postcss-calc": "^7.0.2",
-    "postcss-copy": "^7.1.0",
-    "postcss-css-variables": "^0.14.0",
-    "postcss-import": "^12.0.1",
+    "postcss-calc": "^10.1.1",
+    "postcss-copy": "^3.1.0",
+    "postcss-css-variables": "^0.19.0",
+    "postcss-import": "^16.1.1",
     "postcss-inline": "^1.2.0",
-    "postcss-inline-svg": "^4.1.0",
-    "postcss-nested": "^4.2.1"
-  },
-  "dependencies": {}
+    "postcss-inline-svg": "^6.0.0",
+    "postcss-nested": "^7.0.2"
+  }
 }
