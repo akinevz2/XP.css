@@ -29,7 +29,7 @@
   "homepage": "https://botoxparty.github.io/XP.css/",
   "devDependencies": {
     "chokidar": "^3.3.1",
-    "cssnano": "^8.0.5",
+    "cssnano": "^7.1.2",
     "dedent": "^0.7.0",
     "ejs": "^3.0.2",
     "gh-pages": "^6.3.0",
@@ -43,6 +43,6 @@
     "postcss-import": "^16.1.1",
     "postcss-inline": "^1.2.0",
     "postcss-inline-svg": "^6.0.0",
-    "postcss-nested": "^8.0.1"
+    "postcss-nested": "^7.0.2"
   }
 }
