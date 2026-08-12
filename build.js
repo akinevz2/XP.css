@@ -10,14 +10,22 @@ const postcss = require("postcss");
 
 const { homepage, version } = require("./package.json");
 
+function loadPlugin(mod, opts) {
+  const p = require(mod);
+  const plugin = p && p.__esModule && p.default ? p.default : p;
+  if (typeof plugin === "function") {
+    return typeof opts !== "undefined" ? plugin(opts) : plugin();
+  }
+  return plugin;
+}
+
 const postcssParser = postcss()
-  .use(require("postcss-import"))
-  .use(require("postcss-nested"))
-  .use(require("postcss-inline-svg"))
-  .use(require("postcss-css-variables"))
-  .use(require("postcss-calc"))
-  .use(require("postcss-copy")({ dest: "dist", template: "[name].[ext]" }))
-  .use(require("cssnano"));
+  .use(loadPlugin("postcss-import"))
+  .use(loadPlugin("postcss-nested"))
+  .use(loadPlugin("postcss-inline-svg"))
+  .use(loadPlugin("postcss-css-variables"))
+  .use(loadPlugin("postcss-calc"))
+  .use(loadPlugin("cssnano"));
 
 function buildCSS() {
   const input =
