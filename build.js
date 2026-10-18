@@ -1,10 +1,19 @@
 #!/usr/bin/env node
-const dedent = require("dedent");
-const ejs = require("ejs");
+/**
+ * Minimal modern build: produces the three CSS bundles + fonts in dist/.
+ *
+ * Divergence from upstream botoxparty/XP.css:
+ * - docs/website build removed (ejs, highlight.js, glob, gh-pages, live-server
+ *   were only needed for that and carried all of the flagged dependencies).
+ * - glob/mkdirp/dedent replaced by Node built-ins (fs/path).
+ * - gui/fonts/converted is copied into dist/fonts/converted so that the
+ *   url("fonts/converted/...") references emitted from @font-face resolve
+ *   for consumers of dist/XP.css (they never resolvable before; downstream
+ *   tools like pandoc --embed-resources could not find the fonts).
+ * The CSS pipeline itself (the set of postcss plugins) is unchanged so the
+ * bundle output remains faithful.
+ */
 const fs = require("fs");
-const glob = require("glob");
-const hljs = require("highlight.js");
-const mkdirp = require("mkdirp");
 const path = require("path");
 const postcss = require("postcss");
 
@@ -27,107 +36,66 @@ const postcssParser = postcss()
   .use(loadPlugin("postcss-calc"))
   .use(loadPlugin("cssnano"));
 
-function buildCSS() {
+function copyFonts() {
+  const from = "gui/fonts/converted";
+  const to = path.join("dist", "fonts", "converted");
+  fs.mkdirSync(to, { recursive: true });
+  for (const file of fs.readdirSync(from)) {
+    fs.copyFileSync(path.join(from, file), path.join(to, file));
+  }
+}
+
+// Remove artifacts left behind by the upstream docs build (no longer produced)
+const STALE_DOCS_FILES = [
+  "docs.css",
+  "index.html",
+  "index.html.ejs",
+  "script.js",
+  "vs.css",
+  "icon.png",
+  "window.png",
+];
+
+function removeStaleDocs() {
+  for (const name of STALE_DOCS_FILES) {
+    const target = path.join("dist", name);
+    if (fs.existsSync(target)) fs.rmSync(target);
+  }
+}
+
+function buildTheme(outName, themeDir) {
+  const src = path.join(themeDir, "index.scss");
   const input =
-    `/*! GUI.css v${version} - ${homepage} */\n` +
-    fs.readFileSync("gui/index.scss");
+    `/*! ${outName} v${version} - ${homepage} */\n` +
+    fs.readFileSync(src);
 
   return postcssParser
     .process(input, {
-      from: "gui/index.scss",
-      to: "dist/GUI.css",
+      from: src,
+      to: path.join("dist", outName),
       map: { inline: false },
     })
     .then((result) => {
-      mkdirp.sync("dist");
-      fs.writeFileSync("dist/GUI.css", result.css);
-      fs.writeFileSync("dist/GUI.css.map", result.map.toString());
+      fs.mkdirSync("dist", { recursive: true });
+      fs.writeFileSync(path.join("dist", outName), result.css);
+      fs.writeFileSync(path.join("dist", `${outName}.map`), result.map.toString());
     });
-}
-
-function build98CSS() {
-  const input =
-    `/*! 98.css v${version} - ${homepage} */\n` +
-    fs.readFileSync("themes/98/index.scss");
-
-  return postcssParser
-    .process(input, {
-      from: "themes/98/index.scss",
-      to: "dist/98.css",
-      map: { inline: false },
-    })
-    .then((result) => {
-      mkdirp.sync("dist");
-      fs.writeFileSync("dist/98.css", result.css);
-      fs.writeFileSync("dist/98.css.map", result.map.toString());
-    });
-}
-
-function buildXPCSS() {
-  const input =
-    `/*! XP.css v${version} - ${homepage} */\n` +
-    fs.readFileSync("themes/XP/index.scss");
-
-  return postcssParser
-    .process(input, {
-      from: "themes/XP/index.scss",
-      to: "dist/XP.css",
-      map: { inline: false },
-    })
-    .then((result) => {
-      mkdirp.sync("dist");
-      fs.writeFileSync("dist/XP.css", result.css);
-      fs.writeFileSync("dist/XP.css.map", result.map.toString());
-    });
-}
-
-function buildDocs() {
-  let id = 0;
-  function getNewId() {
-    return ++id;
-  }
-  function getCurrentId() {
-    return id;
-  }
-
-  const template = fs.readFileSync("docs/index.html.ejs", "utf-8");
-
-  function example(code) {
-    const magicBrackets = /\[\[(.*)\]\]/g;
-    const dedented = dedent(code);
-    const inline = dedented.replace(magicBrackets, "$1");
-    const escaped = hljs.highlight("html", dedented.replace(magicBrackets, ""))
-      .value;
-
-    return `<div class="example">
-      ${inline}
-      <details>
-        <summary>Show code</summary>
-        <pre><code>${escaped}</code></pre>
-      </details>
-    </div>`;
-  }
-
-  glob("docs/*", (err, files) => {
-    if (!err) {
-      files.forEach((srcFile) =>
-        fs.copyFileSync(srcFile, path.join("dist", path.basename(srcFile)))
-      );
-    } else throw "error globbing dist directory.";
-  });
-  fs.writeFileSync(
-    path.join(__dirname, "/dist/index.html"),
-    ejs.render(template, { getNewId, getCurrentId, example })
-  );
 }
 
 function build() {
-  build98CSS()
-    .then(buildXPCSS)
-    .then(buildCSS)
-    .then(buildDocs)
-    .catch((err) => console.log(err));
+  return Promise.all([
+    buildTheme("98.css", "themes/98"),
+    buildTheme("GUI.css", "gui"),
+    buildTheme("XP.css", "themes/XP"),
+  ])
+    .then(copyFonts)
+    .then(removeStaleDocs)
+    .catch((err) => {
+      console.error(err);
+      process.exitCode = 1;
+    });
 }
+
 module.exports = build;
 
 build();
