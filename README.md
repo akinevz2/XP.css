@@ -11,6 +11,16 @@ A design system for building faithful recreations of old UIs.
 
 XP.css is an extension of 98.css. A CSS file that takes semantic HTML and makes it look pretty. It does not ship with any JavaScript, so it is compatible with your frontend framework of choice.
 
+### About this fork
+
+This repository is a maintained fork of [botoxparty/XP.css](https://github.com/botoxparty/XP.css), maintained by [akinevz2](https://github.com/akinevz2). Upstream has been inactive, so fixes and tooling work continue here:
+
+- **Actively maintained** — dependency updates, build tooling, and fixes land on this fork first.
+- **Security audited** — dependencies are regularly audited with `npm audit`; abandoned or vulnerable devDependencies are removed or replaced rather than pinned, keeping the audit clean.
+- **Batteries included** — the `dist/` bundles (and converted fonts) are shipped in the repository, so consumers can use forks/links directly from git without running the build.
+
+The original project and its issue tracker remain at [botoxparty/XP.css](https://github.com/botoxparty/XP.css).
+
 ### Installation / Usage
 
 The easiest way to use XP.css is to import it from [unpkg](https://unpkg.com/).
